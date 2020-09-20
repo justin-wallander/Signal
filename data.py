@@ -27,16 +27,22 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 import warnings
 warnings.filterwarnings("ignore",category=DeprecationWarning)
 
-df = pd.read_json('https://raw.githubusercontent.com/selva86/datasets/master/newsgroups.json')
-print(df.target_names.unique())
-df.head()
+df1 = pd.read_json('https://raw.githubusercontent.com/selva86/datasets/master/newsgroups.json')
+print(df1.target_names.unique())
+df1.head()
+df1.columns
+df.columns = df1.columns 
+df1 = pd.concat([df, df1], ignore_index=True)
+df1.head()
+df1.info()
 
 from nltk.corpus import stopwords
 stop_words = stopwords.words('english')
 stop_words.extend(['from', 'subject', 're', 'edu', 'use'])
 
 # Convert to list
-data = df.content.values.tolist()
+data = df1.content.values.tolist()
+type(data[100])
 
 # Remove Emails
 data = [re.sub('\S*@\S*\s?', '', sent) for sent in data]
@@ -138,4 +144,126 @@ vis
 
 mallet_path = '/Users/jw/Downloads/mallet-2.0.8/bin/mallet'
 ldamallet = gensim.models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=20, id2word=id2word)
+
+coherence_model_ldamallet = CoherenceModel(model=ldamallet, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
+coherence_ldamallet = coherence_model_ldamallet.get_coherence()
+print('\nCoherence Score: ', coherence_ldamallet)
+
+def compute_coherence_values(dictionary, corpus, texts, limit, start=2, step=3):
+    """
+    Compute c_v coherence for various number of topics
+
+    Parameters:
+    ----------
+    dictionary : Gensim dictionary
+    corpus : Gensim corpus
+    texts : List of input texts
+    limit : Max num of topics
+
+    Returns:
+    -------
+    model_list : List of LDA topic models
+    coherence_values : Coherence values corresponding to the LDA model with respective number of topics
+    """
+    coherence_values = []
+    model_list = []
+    for num_topics in range(start, limit, step):
+        model = gensim.models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=num_topics, id2word=id2word)
+        model_list.append(model)
+        coherencemodel = CoherenceModel(model=model, texts=texts, dictionary=dictionary, coherence='c_v')
+        coherence_values.append(coherencemodel.get_coherence())
+
+    return model_list, coherence_values
+
+
+model_list, coherence_values = compute_coherence_values(dictionary=id2word, corpus=corpus, texts=data_lemmatized, start=2, limit=40, step=6)
+
+limit=40; start=2; step=6;
+x = range(start, limit, step)
+plt.plot(x, coherence_values)
+plt.xlabel("Num Topics")
+plt.ylabel("Coherence score")
+plt.legend(("coherence_values"), loc='best')
+plt.show()
+coherence_values
+
+for m, cv in zip(x, coherence_values):
+    print("Num Topics =", m, " has Coherence Value of", round(cv, 4))
+
+optimal_model = model_list[4]
+model_topics = optimal_model.show_topics(formatted=False)
+pprint(optimal_model.print_topics(num_words=10))
+
+def format_topics_sentences(ldamodel=lda_model, corpus=corpus, texts=data):
+    # Init output
+    sent_topics_df = pd.DataFrame()
+
+    # Get main topic in each document
+    for i, row in enumerate(ldamodel[corpus]):
+        row = sorted(row, key=lambda x: (x[1]), reverse=True)
+        # Get the Dominant topic, Perc Contribution and Keywords for each document
+        for j, (topic_num, prop_topic) in enumerate(row):
+            if j == 0:  # => dominant topic
+                wp = ldamodel.show_topic(topic_num)
+                topic_keywords = ", ".join([word for word, prop in wp])
+                sent_topics_df = sent_topics_df.append(pd.Series([int(topic_num), round(prop_topic,4), topic_keywords]), ignore_index=True)
+            else:
+                break
+    sent_topics_df.columns = ['Dominant_Topic', 'Perc_Contribution', 'Topic_Keywords']
+
+    # Add original text to the end of the output
+    contents = pd.Series(texts)
+    sent_topics_df = pd.concat([sent_topics_df, contents], axis=1)
+    return(sent_topics_df)
+
+
+df_topic_sents_keywords = format_topics_sentences(ldamodel=optimal_model, corpus=corpus, texts=data)
+df_topic_sents_keywords
+
+# Format
+df_dominant_topic = df_topic_sents_keywords.reset_index()
+df_dominant_topic.columns = ['Document_No', 'Dominant_Topic', 'Topic_Perc_Contrib', 'Keywords', 'Text']
+
+# Show
+df_dominant_topic.head(10)
+
+sent_topics_sorteddf_mallet = pd.DataFrame()
+
+sent_topics_outdf_grpd = df_topic_sents_keywords.groupby('Dominant_Topic')
+
+for i, grp in sent_topics_outdf_grpd:
+    sent_topics_sorteddf_mallet = pd.concat([sent_topics_sorteddf_mallet, 
+                                             grp.sort_values(['Perc_Contribution'], ascending=[0]).head(1)], 
+                                            axis=0)
+
+# Reset Index    
+sent_topics_sorteddf_mallet.reset_index(drop=True, inplace=True)
+
+# Format
+sent_topics_sorteddf_mallet.columns = ['Topic_Num', "Topic_Perc_Contrib", "Keywords", "Text"]
+
+# Show
+sent_topics_sorteddf_mallet.tail()
+
+# Number of Documents for Each Topic
+topic_counts = df_topic_sents_keywords['Dominant_Topic'].value_counts()
+topic_counts
+
+# Percentage of Documents for Each Topic
+topic_contribution = round(topic_counts/topic_counts.sum(), 4)
+topic_contribution
+
+# Topic Number and Keywords
+topic_num_keywords = sent_topics_sorteddf_mallet[['Topic_Num', 'Keywords']]
+topic_num_keywords
+
+# Concatenate Column wise
+df_dominant_topics = pd.concat([topic_num_keywords, topic_counts, topic_contribution], axis=1)
+
+# Change Column names
+df_dominant_topics.columns = ['Dominant_Topic', 'Topic_Keywords', 'Num_Documents', 'Perc_Documents']
+
+# Show
+df_dominant_topics
+
 

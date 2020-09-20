@@ -190,7 +190,7 @@ with open("arxiv-metadata-oai-snapshot.json", 'r') as f:
 
 df0 = pd.DataFrame(data)
 df0['categories'].value_counts()[:10]
-df2 = df0.sample(n=13000, random_state=42)
+df2 = df0.sample(n=12000, random_state=42)
 
 df2['categories'].value_counts()
 df2.info()
@@ -204,6 +204,7 @@ df3.columns = df1.columns
 df1 = pd.concat([df3, df1], ignore_index=True)
 df1.info()
 df1.tail()
+df1.to_csv('data.csv', index=False)
 
 # Convert to list
 data = df1.content.values.tolist()

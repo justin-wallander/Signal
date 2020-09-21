@@ -135,6 +135,53 @@ corpus = [dictionary.doc2bow(doc) for doc in texts]
 
 print(len(corpus))
 
+from gensim.models.ldamulticore import LdaMulticore
+num_topics = 35
+chunksize = 2000
+passes = 20
+iterations = 400
+eval_every = None  # Don't evaluate model perplexity, takes too much time.
+
+# Make a index to word dictionary.
+temp = dictionary[0]  # This is only to "load" the dictionary.
+id2word = dictionary.id2token
+
+lda_multicore = LdaMulticore(
+    corpus=corpus,
+    id2word=id2word,
+    chunksize=2000,
+    alpha='asymmetric',
+    eta='auto',
+    iterations=400,
+    num_topics=num_topics,
+    passes=20,
+    workers=3,
+    eval_every=eval_every)
+
+lda_multicore = LdaMulticore(
+    corpus=corpus,
+    id2word=id2word,
+    chunksize=2000,
+    alpha='asymmetric',
+    eta='auto',
+    iterations=400,
+    num_topics=num_topics,
+    passes=20,
+    workers=3,
+    eval_every=eval_every)
+
+lda_multicore = LdaMulticore(
+    corpus=corpus,
+    id2word=id2word,
+    chunksize=2000,
+    alpha='asymmetric',
+    eta='auto',
+    iterations=400,
+    num_topics=20,
+    passes=20,
+    workers=3,
+    eval_every=eval_every)
+
 # Build LDA model
 lda_model = gensim.models.ldamodel.LdaModel(corpus=corpus,
                                            id2word=id2word,
@@ -147,22 +194,22 @@ lda_model = gensim.models.ldamodel.LdaModel(corpus=corpus,
                                            per_word_topics=True)
 
 
-pprint(lda_model.print_topics())
-doc_lda = lda_model[corpus]
+pprint(lda_multicore.print_topics())
+doc_lda = lda_multicore[corpus]
 
 # Compute Perplexity
-print('\nPerplexity: ', lda_model.log_perplexity(corpus))  # a measure of how good the model is. lower the better.
+print('\nPerplexity: ', lda_multicore.log_perplexity(corpus))  # a measure of how good the model is. lower the better.
 
 # Compute Coherence Score
-coherence_model_lda = CoherenceModel(model=lda_model, texts=data_lemmatized, dictionary=dictionary, coherence='c_v')
+coherence_model_lda = CoherenceModel(model=lda_multicore, texts=data_lemmatized, dictionary=dictionary, coherence='c_v')
 coherence_lda = coherence_model_lda.get_coherence()
 print('\nCoherence Score: ', coherence_lda)
 
 pyLDAvis.enable_notebook()
-vis = pyLDAvis.gensim.prepare(lda_model, corpus, id2word)
+vis = pyLDAvis.gensim.prepare(lda_multicore, corpus, dictionary)
 vis
 
-mallet_path = '/Users/jw/Downloads/mallet-2.0.8/bin/mallet'
+mallet_path = '/home/ubuntu/Signal/mallet-2.0.8/bin/mallet'
 ldamallet = gensim.models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=35, id2word=id2word)
 
 coherence_model_ldamallet = CoherenceModel(model=ldamallet, texts=data_lemmatized, dictionary=dictionary, coherence='c_v')
@@ -188,7 +235,17 @@ def compute_coherence_values(dictionary, corpus, texts, limit, start=2, step=3):
     coherence_values = []
     model_list = []
     for num_topics in range(start, limit, step):
-        model = gensim.models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=num_topics, id2word=id2word)
+        model = LdaMulticore(
+                corpus=corpus,
+                id2word=id2word,
+                chunksize=2000,
+                alpha='asymmetric',
+                eta='auto',
+                iterations=400,
+                num_topics=num_topics,
+                passes=20,
+                workers=3,
+                eval_every=eval_every)
         model_list.append(model)
         coherencemodel = CoherenceModel(model=model, texts=texts, dictionary=dictionary, coherence='c_v')
         coherence_values.append(coherencemodel.get_coherence())
@@ -196,9 +253,9 @@ def compute_coherence_values(dictionary, corpus, texts, limit, start=2, step=3):
     return model_list, coherence_values
 
 
-model_list, coherence_values = compute_coherence_values(dictionary=id2word, corpus=corpus, texts=data_lemmatized, start=5, limit=41, step=5)
+model_list, coherence_values = compute_coherence_values(dictionary=dictionary, corpus=corpus, texts=data_lemmatized, start=15, limit=41, step=5)
 
-limit=41; start=5; step=5;
+limit=41; start=15; step=5;
 x = range(start, limit, step)
 plt.plot(x, coherence_values)
 plt.xlabel("Num Topics")
@@ -210,7 +267,7 @@ coherence_values
 for m, cv in zip(x, coherence_values):
     print("Num Topics =", m, " has Coherence Value of", round(cv, 4))
 
-optimal_model = ldamallet
+optimal_model = lda_multicore
 model_topics = optimal_model.show_topics(formatted=False)
 pprint(optimal_model.print_topics(num_words=10))
 

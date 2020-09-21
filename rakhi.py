@@ -1,4 +1,4 @@
-dictionary = { 'content': {
+rakhi_d = { 'content': {
                 '0': '''I’ve been writing on conservatism and the right for several years. As part of that work, I spend most of my time reading right-leaning news outlets and opinion journals and talking to conservatives — fiscal conservatives and social conservatives, Trump-supportive, Trump-adjacent, and Trump-skeptical.
 
 And in those travels, there’s an argument I hear a lot, particularly in the past week — that had liberals not been so quick to call some on the right, or some ideas on the right, racist, perhaps the right would not have resorted to uniting behind a racist like Donald Trump.
@@ -3716,8 +3716,10 @@ Lucas Chae — LinkedIn, Twitter, Portfolio''',
                 '29': "https://onezero.medium.com/we-need-to-find-out-if-we-are-living-in-a-simulation-1ae70919505b",
                 '30': "https://medium.com/q-e-d/the-whiteness-of-math-education-will-never-be-fixed-without-teaching-math-history-c69da71375dc?source=search_post---------1",
                 '31': "https://humanparts.medium.com/its-time-we-made-simulation-theory-a-religion-77eaf27d1879?source=search_post---------4",
-                '32': "https://medium.com/change-maker/seeing-the-unseen-the-bias-of-algorithms-cd951e0ede8c?source=extreme_main_feed----fab4e9196089-----3-1--------------------ccab2d02_2ce7_400d_8ea6_e609a95f9d58--7,
-                '33': "https://uxdesign.cc/preventing-suicide-the-modern-way-86a816e2bf07",
-                }
+                '32': "https://medium.com/change-maker/seeing-the-unseen-the-bias-of-algorithms-cd951e0ede8c?source=extreme_main_feed----fab4e9196089-----3-1--------------------ccab2d02_2ce7_400d_8ea6_e609a95f9d58--7",
+                '33': "https://uxdesign.cc/preventing-suicide-the-modern-way-86a816e2bf07"}
 
 }
+import pandas as pd 
+rakhi = pd.DataFrame.from_dict(rakhi_d)
+rakhi.info()

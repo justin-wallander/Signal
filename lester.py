@@ -1,4 +1,4 @@
-dictionary = {
+lester_d = {
         "content": {
                 "0": '''DeepSign: A Deep-Learning Architecture for Sign Language Recognition [Video Classification]
 Jay Shah
@@ -2832,5 +2832,5 @@ The real answer, of course, is the people, but only if they know it.'''
 }
 
 import pandas as pd 
-df = pd.DataFrame.from_dict(dictionary)
-df.head()
+lester = pd.DataFrame.from_dict(lester_d)
+lester.info()

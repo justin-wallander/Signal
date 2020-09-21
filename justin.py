@@ -1,4 +1,4 @@
-dictionary = { 'content': {
+justin_d = { 'content': {
                 '0': '''One key observation that helped launch the field of behavioral economics into stardom is called probability weighting: a human cognitive bias to assign higher probabilities to extreme events than … well, than what? Than what someone else thinks the probabilities should be. Below, I will present a very simple mechanistic explanation, most of all for the iconic probability weighting figure in (Tversky and Kahneman, 1992). The result is a now familiar theme: (behavioral) economics expresses a more or less robust observation in psychological terms, as a persistent cognitive error. Ergodicity economics explains the same observation mechanistically, and as perfectly rational behavior.
 
 
@@ -4389,3 +4389,7 @@ As quickly as systems built by Metcalfe’s law can grow, by Halls’ law, they 
                 }
 
 }
+
+import pandas as pd 
+justin = pd.DataFrame.from_dict(justin_d)
+justin.info()

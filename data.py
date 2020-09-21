@@ -120,9 +120,9 @@ dictionary = Dictionary(data_lemmatized)
 # Filter out words that occur less than 20 documents, or more than 50% of the documents.
 dictionary.filter_extremes(no_below=10, no_above=0.6)
 
-# dictionary.save_as_text('dictionary.txt')
+dictionary.save_as_text('dictionary.txt')
 
-#d = Dictionary.load_from_text('dictionary.txt')
+#dictionary = Dictionary.load_from_text('dictionary.txt')
 
 
 
@@ -140,11 +140,11 @@ id2word
 texts = data_lemmatized
 
 # import json
-# with open('texts.txt','w')as f:
-#     f.write(json.dumps(texts))
+# # with open('texts.txt','w')as f:
+# #     f.write(json.dumps(texts))
 
 # with open('texts.txt', 'r') as f:
-#     t = json.loads(f.read())
+#     texts = json.loads(f.read())
 
 
 
@@ -180,7 +180,8 @@ model =  LdaMulticore(
                 id2word= id2word,
                 alpha='asymmetric',
                 eta='auto',
-                num_topics=15,
+                num_topics=10,
+                random_state=100,
                 passes=10,
                 workers=3,
                 eval_every=None,
@@ -222,11 +223,13 @@ model =  LdaMulticore(
 #                                            per_word_topics=True)
 
 
-pprint(lda_multicore.print_topics())
-doc_lda = lda_multicore[corpus]
+pprint(model.print_topics())
+doc_lda = model[corpus]
+doc_lda[4]
+model.get_document_topics(corpus)[1]
 
 # Compute Perplexity
-print('\nPerplexity: ', lda_multicore.log_perplexity(corpus))  # a measure of how good the model is. lower the better.
+print('\nPerplexity: ', model.log_perplexity(corpus))  # a measure of how good the model is. lower the better.
 
 # Compute Coherence Score
 coherence_model_lda = CoherenceModel(model=model, texts=data_lemmatized, dictionary=dictionary, coherence='c_v')
@@ -264,6 +267,7 @@ def compute_coherence_values(dictionary, corpus, texts, limit, start=2, step=3):
     model_list = []
     for num_topics in range(start, limit, step):
         model = LdaMulticore(
+                random_state=42
                 id2word= id2word,
                 alpha='asymmetric',
                 eta='auto',
@@ -287,7 +291,7 @@ def compute_coherence_values(dictionary, corpus, texts, limit, start=2, step=3):
     return model_list, coherence_values
 
 
-model_list, coherence_values = compute_coherence_values(dictionary=dictionary, corpus=corpus, texts=data_lemmatized, start=5, limit=41, step=5)
+model_list, coherence_values = compute_coherence_values(dictionary=dictionary, corpus=corpus, texts=texts, start=5, limit=41, step=5)
 # model_list1, coherence_values1 = compute_coherence_values(dictionary=dictionary, corpus=corpus, texts=data_lemmatized, start=5, limit=41, step=5)
 
 
@@ -304,13 +308,16 @@ for m, cv in zip(x, coherence_values):
     print("Num Topics =", m, " has Coherence Value of", round(cv, 4))
 
 optimal_model = model_list[1]
+for i, row in enumerate(optimal_model[corpus]):
+    print(i, row)
 
-optimal_model.save('lda.model')
+# optimal_model.save('lda.model')
+# optimal_model = LdaMulticore.load('lda.model')
 
 model_topics = optimal_model.show_topics(formatted=False)
 pprint(optimal_model.print_topics(num_words=10))
 
-def format_topics_sentences(ldamodel=lda_model, corpus=corpus, texts=data):
+def format_topics_sentences(ldamodel, corpus=corpus, texts=texts):
     # Init output
     sent_topics_df = pd.DataFrame()
 
@@ -333,7 +340,7 @@ def format_topics_sentences(ldamodel=lda_model, corpus=corpus, texts=data):
     return(sent_topics_df)
 
 
-df_topic_sents_keywords = format_topics_sentences(ldamodel=optimal_model, corpus=corpus, texts=data)
+df_topic_sents_keywords = format_topics_sentences(ldamodel=model, corpus=corpus, texts=data)
 df_topic_sents_keywords
 
 # Format

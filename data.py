@@ -42,10 +42,15 @@ df1 = pd.read_csv('data.csv')
 
 from nltk.corpus import stopwords
 stop_words = stopwords.words('english')
-stop_words.extend(['from', 'subject', 're', 'edu', 'use'])
+stop_words.extend(['from', 'subject', 're', 'edu', 'use', 'line'])
 
 # Convert to list
 data = df1.content.values.tolist()
+
+
+#lowercase
+
+data = [sent.lower() for sent in data]
 
 
 # Remove Emails
@@ -115,7 +120,10 @@ dictionary = Dictionary(data_lemmatized)
 # Filter out words that occur less than 20 documents, or more than 50% of the documents.
 dictionary.filter_extremes(no_below=10, no_above=0.6)
 
-dictionary.save_as_text('dictionary.txt')
+# dictionary.save_as_text('dictionary.txt')
+
+#d = Dictionary.load_from_text('dictionary.txt')
+
 
 
 
@@ -131,6 +139,15 @@ id2word
 # Create Corpus
 texts = data_lemmatized
 
+# import json
+# with open('texts.txt','w')as f:
+#     f.write(json.dumps(texts))
+
+# with open('texts.txt', 'r') as f:
+#     t = json.loads(f.read())
+
+
+
 # Term Document Frequency
 # corpus = [id2word.doc2bow(text) for text in texts]
 corpus = [dictionary.doc2bow(doc) for doc in texts]
@@ -144,9 +161,7 @@ passes = 20
 iterations = 400
 eval_every = None  # Don't evaluate model perplexity, takes too much time.
 
-# Make a index to word dictionary.
-temp = dictionary[0]  # This is only to "load" the dictionary.
-id2word = dictionary.id2token
+
 
 lda_multicore = LdaMulticore(
     corpus=corpus,
@@ -169,7 +184,7 @@ model =  LdaMulticore(
                 passes=10,
                 workers=3,
                 eval_every=None,
-                er_word_topics=True)
+                per_word_topics=True)
 
 # lda_multicore = LdaMulticore(
 #     corpus=corpus,
@@ -214,7 +229,7 @@ doc_lda = lda_multicore[corpus]
 print('\nPerplexity: ', lda_multicore.log_perplexity(corpus))  # a measure of how good the model is. lower the better.
 
 # Compute Coherence Score
-coherence_model_lda = CoherenceModel(model=lda_multicore, texts=data_lemmatized, dictionary=dictionary, coherence='c_v')
+coherence_model_lda = CoherenceModel(model=model, texts=data_lemmatized, dictionary=dictionary, coherence='c_v')
 coherence_lda = coherence_model_lda.get_coherence()
 print('\nCoherence Score: ', coherence_lda)
 
@@ -248,22 +263,23 @@ def compute_coherence_values(dictionary, corpus, texts, limit, start=2, step=3):
     coherence_values = []
     model_list = []
     for num_topics in range(start, limit, step):
-        # model = LdaMulticore(
-        #         id2word= id2word,
-        #         alpha='asymmetric',
-        #         eta='auto',
-        #         num_topics=num_topics,
-        #         passes=10,
-        #         workers=3,
-        #         eval_every=None)
-        model = gensim.models.ldamodel.LdaModel(corpus=corpus,
-                                           id2word=id2word,
-                                           num_topics=num_topics, 
-                                           random_state=100,
-                                           update_every=1,
-                                           passes=10,
-                                           alpha='auto',
-                                           )
+        model = LdaMulticore(
+                id2word= id2word,
+                alpha='asymmetric',
+                eta='auto',
+                num_topics=num_topics,
+                passes=10,
+                workers=3,
+                per_word_topics=True,
+                eval_every=None)
+        # model = gensim.models.ldamodel.LdaModel(corpus=corpus,
+        #                                    id2word=id2word,
+        #                                    num_topics=num_topics, 
+        #                                    random_state=100,
+        #                                    update_every=1,
+        #                                    passes=10,
+        #                                    alpha='auto',
+        #                                    )
         model_list.append(model)
         coherencemodel = CoherenceModel(model=model, texts=texts, dictionary=dictionary, coherence='c_v')
         coherence_values.append(coherencemodel.get_coherence())
@@ -272,7 +288,7 @@ def compute_coherence_values(dictionary, corpus, texts, limit, start=2, step=3):
 
 
 model_list, coherence_values = compute_coherence_values(dictionary=dictionary, corpus=corpus, texts=data_lemmatized, start=5, limit=41, step=5)
-model_list1, coherence_values1 = compute_coherence_values(dictionary=dictionary, corpus=corpus, texts=data_lemmatized, start=5, limit=41, step=5)
+# model_list1, coherence_values1 = compute_coherence_values(dictionary=dictionary, corpus=corpus, texts=data_lemmatized, start=5, limit=41, step=5)
 
 
 limit=41; start=5; step=5;

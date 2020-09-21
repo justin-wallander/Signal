@@ -303,7 +303,10 @@ coherence_values
 for m, cv in zip(x, coherence_values):
     print("Num Topics =", m, " has Coherence Value of", round(cv, 4))
 
-optimal_model = lda_multicore
+optimal_model = model_list[1]
+
+optimal_model.save('lda.model')
+
 model_topics = optimal_model.show_topics(formatted=False)
 pprint(optimal_model.print_topics(num_words=10))
 

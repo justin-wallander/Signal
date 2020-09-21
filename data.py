@@ -27,14 +27,18 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 import warnings
 warnings.filterwarnings("ignore",category=DeprecationWarning)
 
-df1 = pd.read_json('https://raw.githubusercontent.com/selva86/datasets/master/newsgroups.json')
-print(df1.target_names.unique())
-df1.head()
-df1.columns
-df.columns = df1.columns 
-df1 = pd.concat([df, df1], ignore_index=True)
-df1.head()
-df1.info()
+# df1 = pd.read_json('https://raw.githubusercontent.com/selva86/datasets/master/newsgroups.json')
+# print(df1.target_names.unique())
+# df1.head()
+# df1.columns
+# df.columns = df1.columns 
+# df1 = pd.concat([df, df1], ignore_index=True)
+# df1.head()
+# df1.info()
+
+###
+df1 = pd.read_csv('data.csv')
+
 
 from nltk.corpus import stopwords
 stop_words = stopwords.words('english')
@@ -42,7 +46,7 @@ stop_words.extend(['from', 'subject', 're', 'edu', 'use'])
 
 # Convert to list
 data = df1.content.values.tolist()
-type(data[100])
+
 
 # Remove Emails
 data = [re.sub('\S*@\S*\s?', '', sent) for sent in data]
@@ -62,14 +66,14 @@ data_words = list(sent_to_words(data))
 print(data_words[0])
 
 bigram = gensim.models.Phrases(data_words, min_count=5, threshold=100) # higher threshold fewer phrases.
-trigram = gensim.models.Phrases(bigram[data_words], threshold=100)  
+# trigram = gensim.models.Phrases(bigram[data_words], threshold=100)  
 
 # Faster way to get a sentence clubbed as a trigram/bigram
 bigram_mod = gensim.models.phrases.Phraser(bigram)
-trigram_mod = gensim.models.phrases.Phraser(trigram)
+# trigram_mod = gensim.models.phrases.Phraser(trigram)
 
 # See trigram example
-print(trigram_mod[bigram_mod[data_words[0]]])
+# print(trigram_mod[bigram_mod[data_words[0]]])
 
 # Define functions for stopwords, bigrams, trigrams and lemmatization
 def remove_stopwords(texts):
@@ -78,8 +82,8 @@ def remove_stopwords(texts):
 def make_bigrams(texts):
     return [bigram_mod[doc] for doc in texts]
 
-def make_trigrams(texts):
-    return [trigram_mod[bigram_mod[doc]] for doc in texts]
+# def make_trigrams(texts):
+#     return [trigram_mod[bigram_mod[doc]] for doc in texts]
 
 def lemmatization(texts, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV']):
     """https://spacy.io/api/annotation"""
@@ -104,21 +108,37 @@ nlp = spacy.load('en', disable=['parser', 'ner'])
 # Do lemmatization keeping only noun, adj, vb, adv
 data_lemmatized = lemmatization(data_words_bigrams, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV'])
 
-print(data_lemmatized[0])
+print(len(data_lemmatized))
+from gensim.corpora import Dictionary
+dictionary = Dictionary(data_lemmatized)
+
+# Filter out words that occur less than 20 documents, or more than 50% of the documents.
+dictionary.filter_extremes(no_below=10, no_above=0.6)
+
+
+
+
 
 # Create Dictionary
-id2word = corpora.Dictionary(data_lemmatized)
+temp = dictionary[0]
+id2word = dictionary.id2token
+# id2word = corpora.Dictionary(data_lemmatized)
+print(len(id2word))
+id2word
 
 # Create Corpus
 texts = data_lemmatized
 
 # Term Document Frequency
-corpus = [id2word.doc2bow(text) for text in texts]
+# corpus = [id2word.doc2bow(text) for text in texts]
+corpus = [dictionary.doc2bow(doc) for doc in texts]
+
+print(len(corpus))
 
 # Build LDA model
 lda_model = gensim.models.ldamodel.LdaModel(corpus=corpus,
                                            id2word=id2word,
-                                           num_topics=20, 
+                                           num_topics=35, 
                                            random_state=100,
                                            update_every=1,
                                            chunksize=100,
@@ -134,7 +154,7 @@ doc_lda = lda_model[corpus]
 print('\nPerplexity: ', lda_model.log_perplexity(corpus))  # a measure of how good the model is. lower the better.
 
 # Compute Coherence Score
-coherence_model_lda = CoherenceModel(model=lda_model, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
+coherence_model_lda = CoherenceModel(model=lda_model, texts=data_lemmatized, dictionary=dictionary, coherence='c_v')
 coherence_lda = coherence_model_lda.get_coherence()
 print('\nCoherence Score: ', coherence_lda)
 
@@ -143,9 +163,9 @@ vis = pyLDAvis.gensim.prepare(lda_model, corpus, id2word)
 vis
 
 mallet_path = '/Users/jw/Downloads/mallet-2.0.8/bin/mallet'
-ldamallet = gensim.models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=20, id2word=id2word)
+ldamallet = gensim.models.wrappers.LdaMallet(mallet_path, corpus=corpus, num_topics=35, id2word=id2word)
 
-coherence_model_ldamallet = CoherenceModel(model=ldamallet, texts=data_lemmatized, dictionary=id2word, coherence='c_v')
+coherence_model_ldamallet = CoherenceModel(model=ldamallet, texts=data_lemmatized, dictionary=dictionary, coherence='c_v')
 coherence_ldamallet = coherence_model_ldamallet.get_coherence()
 print('\nCoherence Score: ', coherence_ldamallet)
 
@@ -176,9 +196,9 @@ def compute_coherence_values(dictionary, corpus, texts, limit, start=2, step=3):
     return model_list, coherence_values
 
 
-model_list, coherence_values = compute_coherence_values(dictionary=id2word, corpus=corpus, texts=data_lemmatized, start=2, limit=40, step=6)
+model_list, coherence_values = compute_coherence_values(dictionary=id2word, corpus=corpus, texts=data_lemmatized, start=5, limit=41, step=5)
 
-limit=40; start=2; step=6;
+limit=41; start=5; step=5;
 x = range(start, limit, step)
 plt.plot(x, coherence_values)
 plt.xlabel("Num Topics")
@@ -190,7 +210,7 @@ coherence_values
 for m, cv in zip(x, coherence_values):
     print("Num Topics =", m, " has Coherence Value of", round(cv, 4))
 
-optimal_model = model_list[4]
+optimal_model = ldamallet
 model_topics = optimal_model.show_topics(formatted=False)
 pprint(optimal_model.print_topics(num_words=10))
 
@@ -265,5 +285,30 @@ df_dominant_topics.columns = ['Dominant_Topic', 'Topic_Keywords', 'Num_Documents
 
 # Show
 df_dominant_topics
+# gensim.models.wrappers.ldamallet.malletmodel2ldamodel(ldamallet)
+lda1 = gensim.models.wrappers.ldamallet.malletmodel2ldamodel(optimal_model, gamma_threshold=0.001, iterations=50)
+
+
+
+all_top_vecs = [optimal_model.get_document_topics(corpus[n], minimum_probability=0) \
+                    for n in range(len(corpus))]
+
+
+def find_most_similar(sim_vec, all_top_vecs, title_lst, vec_in_corp='Y', n_results=7):                
+    '''
+    Calculates cosine similarity across the entire corpus and returns 
+    the n_results number of most similar documents
+    '''
+    
+    cos_sims = [gensim.matutils.cossim(sim_vec, vec) for vec in all_top_vecs]
+    
+    if vec_in_corp == 'N':
+        most_similar_ind = np.argsort(cos_sims)[::-1][:n_results]
+    if vec_in_corp == 'Y':
+        most_similar_ind = np.argsort(cos_sims)[::-1][:n_results+1][1:]
+        #exclude 'self', in the case that it is a book in the corpus
+    
+    for ind in most_similar_ind:
+        print (title_lst[ind], cos_sims[ind])
 
 

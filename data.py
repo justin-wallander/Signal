@@ -120,9 +120,9 @@ dictionary = Dictionary(data_lemmatized)
 # Filter out words that occur less than 20 documents, or more than 50% of the documents.
 dictionary.filter_extremes(no_below=10, no_above=0.6)
 
-dictionary.save_as_text('dictionary.txt')
+# dictionary.save_as_text('dictionary.txt')
 
-#dictionary = Dictionary.load_from_text('dictionary.txt')
+dictionary = Dictionary.load_from_text('dictionary.txt')
 
 
 
@@ -139,12 +139,12 @@ id2word
 # Create Corpus
 texts = data_lemmatized
 
-# import json
+import json
 # # with open('texts.txt','w')as f:
 # #     f.write(json.dumps(texts))
 
-# with open('texts.txt', 'r') as f:
-#     texts = json.loads(f.read())
+with open('texts.txt', 'r') as f:
+    texts = json.loads(f.read())
 
 
 
@@ -232,7 +232,7 @@ model.get_document_topics(corpus)[1]
 print('\nPerplexity: ', model.log_perplexity(corpus))  # a measure of how good the model is. lower the better.
 
 # Compute Coherence Score
-coherence_model_lda = CoherenceModel(model=model, texts=data_lemmatized, dictionary=dictionary, coherence='c_v')
+coherence_model_lda = CoherenceModel(model=model, texts=texts, dictionary=dictionary, coherence='c_v')
 coherence_lda = coherence_model_lda.get_coherence()
 print('\nCoherence Score: ', coherence_lda)
 
@@ -304,25 +304,50 @@ plt.legend(("coherence_values"), loc='best')
 plt.show()
 coherence_values
 
-for m, cv in zip(x, coherence_values):
-    print("Num Topics =", m, " has Coherence Value of", round(cv, 4))
+# for m, cv in zip(x, coherence_values):
+#     print("Num Topics =", m, " has Coherence Value of", round(cv, 4))
 
-optimal_model = model_list[1]
-for i, row in enumerate(optimal_model[corpus]):
-    print(i, row)
+# optimal_model = model_list[1]
+# for i, row in enumerate(optimal_model[corpus]):
+#     print(i, row)
 
 # optimal_model.save('lda.model')
 # optimal_model = LdaMulticore.load('lda.model')
+model.save('lda.model')
 
 model_topics = optimal_model.show_topics(formatted=False)
 pprint(optimal_model.print_topics(num_words=10))
+
+# def format_topics_sentences(ldamodel, corpus=corpus, texts=texts):
+#     # Init output
+#     sent_topics_df = pd.DataFrame()
+
+#     # Get main topic in each document
+#     for i, row in enumerate(ldamodel[corpus]):
+#         row = sorted(row, key=lambda x: (x[1]), reverse=True)
+#         # Get the Dominant topic, Perc Contribution and Keywords for each document
+#         for j, (topic_num, prop_topic) in enumerate(row):
+#             if j == 0:  # => dominant topic
+#                 wp = ldamodel.show_topic(topic_num)
+#                 topic_keywords = ", ".join([word for word, prop in wp])
+#                 sent_topics_df = sent_topics_df.append(pd.Series([int(topic_num), round(prop_topic,4), topic_keywords]), ignore_index=True)
+#             else:
+#                 break
+#     sent_topics_df.columns = ['Dominant_Topic', 'Perc_Contribution', 'Topic_Keywords']
+
+#     # Add original text to the end of the output
+#     contents = pd.Series(texts)
+#     sent_topics_df = pd.concat([sent_topics_df, contents], axis=1)
+#     return(sent_topics_df)
 
 def format_topics_sentences(ldamodel, corpus=corpus, texts=texts):
     # Init output
     sent_topics_df = pd.DataFrame()
 
     # Get main topic in each document
-    for i, row in enumerate(ldamodel[corpus]):
+    for i, row_list in enumerate(ldamodel[corpus]):
+        row = row_list[0] if ldamodel.per_word_topics else row_list            
+        # print(row)
         row = sorted(row, key=lambda x: (x[1]), reverse=True)
         # Get the Dominant topic, Perc Contribution and Keywords for each document
         for j, (topic_num, prop_topic) in enumerate(row):
@@ -340,7 +365,7 @@ def format_topics_sentences(ldamodel, corpus=corpus, texts=texts):
     return(sent_topics_df)
 
 
-df_topic_sents_keywords = format_topics_sentences(ldamodel=model, corpus=corpus, texts=data)
+df_topic_sents_keywords = format_topics_sentences(ldamodel=model, corpus=corpus, texts=texts)
 df_topic_sents_keywords
 
 # Format
@@ -388,8 +413,11 @@ df_dominant_topics.columns = ['Dominant_Topic', 'Topic_Keywords', 'Num_Documents
 
 # Show
 df_dominant_topics
+
+df_dominant_topics.to_csv('topics.csv', index=False)
+
 # gensim.models.wrappers.ldamallet.malletmodel2ldamodel(ldamallet)
-lda1 = gensim.models.wrappers.ldamallet.malletmodel2ldamodel(optimal_model, gamma_threshold=0.001, iterations=50)
+# lda1 = gensim.models.wrappers.ldamallet.malletmodel2ldamodel(optimal_model, gamma_threshold=0.001, iterations=50)
 
 
 

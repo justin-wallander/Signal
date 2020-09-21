@@ -115,6 +115,8 @@ dictionary = Dictionary(data_lemmatized)
 # Filter out words that occur less than 20 documents, or more than 50% of the documents.
 dictionary.filter_extremes(no_below=10, no_above=0.6)
 
+dictionary.save_as_text('dictionary.txt')
+
 
 
 
@@ -157,6 +159,17 @@ lda_multicore = LdaMulticore(
     passes=20,
     workers=3,
     eval_every=eval_every)
+
+model =  LdaMulticore(
+                corpus=corpus,
+                id2word= id2word,
+                alpha='asymmetric',
+                eta='auto',
+                num_topics=15,
+                passes=10,
+                workers=3,
+                eval_every=None,
+                er_word_topics=True)
 
 # lda_multicore = LdaMulticore(
 #     corpus=corpus,

@@ -153,45 +153,45 @@ lda_multicore = LdaMulticore(
     alpha='asymmetric',
     eta='auto',
     iterations=400,
-    num_topics=num_topics,
+    num_topics=15,
     passes=20,
     workers=3,
     eval_every=eval_every)
 
-lda_multicore = LdaMulticore(
-    corpus=corpus,
-    id2word=id2word,
-    chunksize=2000,
-    alpha='asymmetric',
-    eta='auto',
-    iterations=400,
-    num_topics=num_topics,
-    passes=20,
-    workers=3,
-    eval_every=eval_every)
+# lda_multicore = LdaMulticore(
+#     corpus=corpus,
+#     id2word=id2word,
+#     chunksize=2000,
+#     alpha='asymmetric',
+#     eta='auto',
+#     iterations=400,
+#     num_topics=num_topics,
+#     passes=20,
+#     workers=3,
+#     eval_every=eval_every)
 
-lda_multicore = LdaMulticore(
-    corpus=corpus,
-    id2word=id2word,
-    chunksize=2000,
-    alpha='asymmetric',
-    eta='auto',
-    iterations=400,
-    num_topics=20,
-    passes=20,
-    workers=3,
-    eval_every=eval_every)
+# lda_multicore = LdaMulticore(
+#     corpus=corpus,
+#     id2word=id2word,
+#     chunksize=2000,
+#     alpha='asymmetric',
+#     eta='auto',
+#     iterations=400,
+#     num_topics=20,
+#     passes=20,
+#     workers=3,
+#     eval_every=eval_every)
 
 # Build LDA model
-lda_model = gensim.models.ldamodel.LdaModel(corpus=corpus,
-                                           id2word=id2word,
-                                           num_topics=35, 
-                                           random_state=100,
-                                           update_every=1,
-                                           chunksize=100,
-                                           passes=10,
-                                           alpha='auto',
-                                           per_word_topics=True)
+# lda_model = gensim.models.ldamodel.LdaModel(corpus=corpus,
+#                                            id2word=id2word,
+#                                            num_topics=35, 
+#                                            random_state=100,
+#                                            update_every=1,
+#                                            chunksize=100,
+#                                            passes=10,
+#                                            alpha='auto',
+#                                            per_word_topics=True)
 
 
 pprint(lda_multicore.print_topics())
@@ -235,17 +235,22 @@ def compute_coherence_values(dictionary, corpus, texts, limit, start=2, step=3):
     coherence_values = []
     model_list = []
     for num_topics in range(start, limit, step):
-        model = LdaMulticore(
-                corpus=corpus,
-                id2word=id2word,
-                chunksize=2000,
-                alpha='asymmetric',
-                eta='auto',
-                iterations=400,
-                num_topics=num_topics,
-                passes=20,
-                workers=3,
-                eval_every=eval_every)
+        # model = LdaMulticore(
+        #         id2word= id2word,
+        #         alpha='asymmetric',
+        #         eta='auto',
+        #         num_topics=num_topics,
+        #         passes=10,
+        #         workers=3,
+        #         eval_every=None)
+        model = gensim.models.ldamodel.LdaModel(corpus=corpus,
+                                           id2word=id2word,
+                                           num_topics=num_topics, 
+                                           random_state=100,
+                                           update_every=1,
+                                           passes=10,
+                                           alpha='auto',
+                                           )
         model_list.append(model)
         coherencemodel = CoherenceModel(model=model, texts=texts, dictionary=dictionary, coherence='c_v')
         coherence_values.append(coherencemodel.get_coherence())
@@ -253,9 +258,11 @@ def compute_coherence_values(dictionary, corpus, texts, limit, start=2, step=3):
     return model_list, coherence_values
 
 
-model_list, coherence_values = compute_coherence_values(dictionary=dictionary, corpus=corpus, texts=data_lemmatized, start=15, limit=41, step=5)
+model_list, coherence_values = compute_coherence_values(dictionary=dictionary, corpus=corpus, texts=data_lemmatized, start=5, limit=41, step=5)
+model_list1, coherence_values1 = compute_coherence_values(dictionary=dictionary, corpus=corpus, texts=data_lemmatized, start=5, limit=41, step=5)
 
-limit=41; start=15; step=5;
+
+limit=41; start=5; step=5;
 x = range(start, limit, step)
 plt.plot(x, coherence_values)
 plt.xlabel("Num Topics")

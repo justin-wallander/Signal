@@ -1,3 +1,9 @@
+Todo:
+- clean up code/ comment/ create scripts
+- work on roam research pipelone
+- build app -  probably Flutter Framework
+- last updated: 9/24/20
+
 # Signal
 Capstone 3 Proposal
 
@@ -11,4 +17,4 @@ I want to build an app that, based on the text of an article (ideally just a url
 
 I am not currently aware of any apps or software that are available whose sole intent is to find the signal in the noise and break you out of echo chambers. My current understanding of social media algorithms is that unless you curate your social media feed by following multiple disparate perspectives, you are basically trapped in an echo chamber. I honestly do not know if this would be a viable product for the masses, given the psychology of human nature, we don't like what we don't like and we generally do not want opposing ideas brought to our attention. So this product would be for myself, and I guess people who are like minded in the sense that the objective is not trying to protect some particular belief/ value system that I hold dear right now but to get as close to base reality and the truth as is humanly possible. 
 
-Initially the data will be articles that I and a few friends have read. I will attempt to set up a corpus and user profile for each individual and tailor the recommender to that. The challenges this project present are innummerable and will certainly stretch beyond the limits of my ability. I cannot think of anything though that my time and attention would be spent better on, so my next steps are formulating my corpus and learning as much as possible about recommender systems. 
+Initially the data will be articles that I and a few friends have read. I will attempt to set up a corpus and user profile for each individual and tailor the recommender to that. 

@@ -1,6 +1,6 @@
 Todo:
 - clean up code/ comment/ create scripts
-- work on roam research pipelone
+- work on roam research pipeline
 - build app -  probably Flutter Framework
 - last updated: 9/24/20
 

@@ -46,6 +46,8 @@ from nltk.corpus import stopwords
 stop_words = stopwords.words('english')
 stop_words.extend(['from', 'subject', 're', 'edu', 'use', 'line'])
 
+stop_words
+
 # Convert to list
 data = df1.content.values.tolist()
 
@@ -104,6 +106,7 @@ def lemmatization(texts, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV']):
 
 # Remove Stop Words
 data_words_nostops = remove_stopwords(data_words)
+texts = remove_stopwords(texts)
 
 # Form Bigrams
 data_words_bigrams = make_bigrams(data_words_nostops)
@@ -147,6 +150,12 @@ import json
 
 with open('texts.txt', 'r') as f:
     texts = json.loads(f.read())
+
+
+dictionary['use']
+for idx, i in enumerate(texts):
+    if 'use' in i:
+        print(idx)
 
 
 
@@ -524,23 +533,23 @@ def find_topic_books(topic_num, all_top_vecs, n_results=10):
 all_top_vecs
 
 find_most_similar(justin_vecs[3], all_top_vecs, df1.content, vec_in_corp='N', n_results=3)
-Is MSG sensitivity superstition?  sci.med 0.9922154188798971
-Selective Placebo sci.med 0.9916461672869317
-sex education sci.med 0.9839967035006875
+# Is MSG sensitivity superstition?  sci.med 0.9922154188798971
+# Selective Placebo sci.med 0.9916461672869317
+# sex education sci.med 0.9839967035006875
 find_most_similar(justin_vecs[3], rak_les_vecs, r_l_df.target, vec_in_corp='N', n_results=3)
-The Math Equation That Tried to Stump the Internet  Rakhi math 0.9609225565188918
-The Fullest Look Yet at the Racial Inequality of Coronavirus Rakhi social justice 0.958747481306203
-You Really Want To Humanize Math Education? Build A New Ship Rakhi math education 0.9569022871356381
+# The Math Equation That Tried to Stump the Internet  Rakhi math 0.9609225565188918
+# The Fullest Look Yet at the Racial Inequality of Coronavirus Rakhi social justice 0.958747481306203
+# You Really Want To Humanize Math Education? Build A New Ship Rakhi math education 0.9569022871356381
 
 find_most_similar(justin_vecs[24], all_top_vecs, df1.target_names, vec_in_corp='N', n_results=4)
-Fractals? what good are they? comp.graphics 0.9760094438780984
-Eumemics (was: Eugenics)  sci.med 0.9598570501781843
-MC SBI mixer  sci.electronics 0.9455659664803201
+# Fractals? what good are they? comp.graphics 0.9760094438780984
+# Eumemics (was: Eugenics)  sci.med 0.9598570501781843
+# MC SBI mixer  sci.electronics 0.9455659664803201
 
 find_most_similar(justin_vecs[24], rak_les_vecs, r_l_df.target, vec_in_corp='N', n_results=3)
-preventing suicide the modern way Rakhi mental health/suicide/design 0.909599279054611
-how to destroy surveillance capitalism Lester politics/economics 0.8918235108587547
-The Academy’s New Inclusion Requirements Won’t Color Correct Hollywood Rakhi social justice 0.8831585144004426
+# preventing suicide the modern way Rakhi mental health/suicide/design 0.909599279054611
+# how to destroy surveillance capitalism Lester politics/economics 0.8918235108587547
+# The Academy’s New Inclusion Requirements Won’t Color Correct Hollywood Rakhi social justice 0.8831585144004426
 
 
 

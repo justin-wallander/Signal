@@ -2,7 +2,7 @@ Todo:
 - clean up code/ comment/ create scripts
 - work on roam research pipelone
 - build app -  probably Flutter Framework
-last updated: 9/24/20
+- last updated: 9/24/20
 
 # Signal
 Capstone 3 Proposal

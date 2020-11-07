@@ -20,7 +20,7 @@ import spacy
 import pyLDAvis
 import pyLDAvis.gensim  # don't skip this
 import matplotlib.pyplot as plt
-# %matplotlib inline
+%matplotlib inline
 
 # Enable logging for gensim - optional
 import logging
